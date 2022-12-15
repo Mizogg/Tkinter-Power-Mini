@@ -1,2 +1,2 @@
 # Tkinter-Power-Mini
-Bitcoin Tkinter GUI Hunter
+Bitcoin Tkinter Mini GUI Hunter
