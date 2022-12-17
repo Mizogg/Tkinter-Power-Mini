@@ -1,6 +1,6 @@
 #!/usr/bin/env python3   OFFLINE VERSION
 # -*- coding: utf-8 -*-
-#Created by @Mizogg 15.12.2022 https://t.me/CryptoCrackersUK
+#Created by @Mizogg 17.12.2022 https://t.me/CryptoCrackersUK
 import hmac, struct, codecs, sys, os, binascii, hashlib, re, webbrowser, random, string
 from tkinter import * 
 from tkinter import ttk
@@ -40,9 +40,12 @@ except ImportError:
 with open('btc.bf', "rb") as fp:
     bloom_filterbtc = BloomFilter.load(fp)
 
+with open('eth.bf', "rb") as fp:
+    bloom_filtereth = BloomFilter.load(fp)
+    
 def countadd():
-    addr_count = len(bloom_filterbtc)
-    addr_count_print = (f'Total Bitcoin Addresses Loaded and Checking : {addr_count}')
+    addr_count = len(bloom_filterbtc) + len(bloom_filtereth)
+    addr_count_print = (f'BTC Addresses {len(bloom_filterbtc)} ETH Addresses {len(bloom_filtereth)} Total Loaded and Checking : {addr_count}')
     return addr_count_print
 
 lines = '=' * 54
@@ -107,18 +110,48 @@ Bitcoin Address : {value} :
 ''')
     return dataadd
 
-def int2addr(value):
+def int2addr(self, value):
     dec=int(value)
     HEX = "%064x" % dec
     caddr = ice.privatekey_to_address(0, True, dec) #Compressed
     uaddr = ice.privatekey_to_address(0, False, dec)  #Uncompressed
     p2sh = ice.privatekey_to_address(1, True, dec) #p2sh
     bech32 = ice.privatekey_to_address(2, True, dec)  #bech32
+    ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
+    if caddr in bloom_filterbtc:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n {caddr} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
+        with open("foundcaddr.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if p2sh in bloom_filterbtc:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n {p2sh}\nDecimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX} \n'
+        with open("foundp2sh.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if bech32 in bloom_filterbtc:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n {bech32}\n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX} \n'
+        with open("foundbech32.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if ethaddr in bloom_filtereth:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n 0x{ethaddr}\n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX} \n'
+        with open("foundeth.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
     dataadd= (f'''{lines}
 Bitcoin Address : {caddr} : 
 Bitcoin Address : {uaddr} : 
 Bitcoin Address : {p2sh} : 
 Bitcoin Address : {bech32} : 
+Ethereum Address : 0x{ethaddr} : 
 {lines}
 ''')
     return dataadd
@@ -288,6 +321,17 @@ def bip39seed_to_private_key3(bip39seed, n=1):
         private_key, chain_code = derive_bip32childkey(private_key, chain_code, i)
     return private_key
 
+def bip39seed_to_private_key4(bip39seed, n=1):
+    const = "m/44'/60'/0'/0/"
+#    str_derivation_path = const + str(n-1)
+    str_derivation_path = "m/44'/60'/0'/0/0"
+    derivation_path = parse_derivation_path2(str_derivation_path)
+    master_private_key, master_chain_code = bip39seed_to_bip32masternode(bip39seed)
+    private_key, chain_code = master_private_key, master_chain_code
+    for i in derivation_path:
+        private_key, chain_code = derive_bip32childkey(private_key, chain_code, i)
+    return private_key
+    
 derivation_total_path_to_check = 1
 
 
@@ -296,43 +340,55 @@ def rwoffline(self, mnem):
     pvk = bip39seed_to_private_key(seed, derivation_total_path_to_check)
     pvk2 = bip39seed_to_private_key2(seed, derivation_total_path_to_check)
     pvk3 = bip39seed_to_private_key3(seed, derivation_total_path_to_check)
+    pvk4 = bip39seed_to_private_key4(seed, derivation_total_path_to_check)
     dec = (int.from_bytes(pvk, "big"))
     HEX = "%064x" % dec
     dec2 = (int.from_bytes(pvk2, "big"))
     HEX2 = "%064x" % dec2
     dec3 = (int.from_bytes(pvk3, "big"))
     HEX3 = "%064x" % dec3
+    dec4 = (int.from_bytes(pvk4, "big"))
+    HEX4 = "%064x" % dec4
     cpath = "m/44'/0'/0'/0/0"
     ppath = "m/49'/0'/0'/0/0"
     bpath = "m/84'/0'/0'/0/0"
+    epath = "m/44'/60'/0'/0/"
     caddr = ice.privatekey_to_address(0, True, (int.from_bytes(pvk, "big")))
     p2sh = ice.privatekey_to_address(1, True, (int.from_bytes(pvk2, "big")))
     bech32 = ice.privatekey_to_address(2, True, (int.from_bytes(pvk3, "big")))
-    wordvartext = (f' Bitcoin {cpath} :  {caddr} \n Bitcoin {cpath} : Decimal Private Key \n {dec} \n Bitcoin {cpath} : Hexadecimal Private Key \n {HEX}  \n Bitcoin {ppath} :  {p2sh}\n Bitcoin {ppath} : Decimal Private Key \n {dec2} \n Bitcoin {ppath} :  Hexadecimal Private Key \n {HEX2} \n Bitcoin {bpath} : {bech32}\n Bitcoin {bpath} : Decimal Private Key \n {dec3} \n Bitcoin {bpath} : Hexadecimal Private Key \n {HEX3} ')
+    ethaddr = ice.privatekey_to_ETH_address(int.from_bytes(pvk4, "big"))[2:]
+    wordvartext = (f' Bitcoin {cpath} :  {caddr} \n Bitcoin {cpath} : Decimal Private Key \n {dec} \n Bitcoin {cpath} : Hexadecimal Private Key \n {HEX}  \n Bitcoin {ppath} :  {p2sh}\n Bitcoin {ppath} : Decimal Private Key \n {dec2} \n Bitcoin {ppath} :  Hexadecimal Private Key \n {HEX2} \n Bitcoin {bpath} : {bech32}\n Bitcoin {bpath} : Decimal Private Key \n {dec3} \n Bitcoin {bpath} : Hexadecimal Private Key \n {HEX3} \n ETH {epath} : 0x{ethaddr}\n ETH {epath} : Decimal Private Key \n {dec4} \n ETH {epath} : Hexadecimal Private Key \n {HEX4} ')
     if caddr in bloom_filterbtc:
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {cpath} :  {caddr} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
         with open("foundcaddr.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
     if p2sh in bloom_filterbtc:
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {ppath} :  {p2sh}\nDecimal Private Key \n {dec2} \n Hexadecimal Private Key \n {HEX2} \n'
         with open("foundp2sh.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
     if bech32 in bloom_filterbtc:
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {bpath} : {bech32}\n Decimal Private Key \n {dec3} \n Hexadecimal Private Key \n {HEX3} \n'
         with open("foundbech32.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
+    if ethaddr in bloom_filtereth:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n Mnemonic: {mnem} \n ETH {epath} : 0x{ethaddr}\n Decimal Private Key \n {dec4} \n Hexadecimal Private Key \n {HEX4} \n'
+        with open("foundeth.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
     return wordvartext
     
-def brute_btc(self, dec):
+def brute_crypto(self, dec):
     caddr = ice.privatekey_to_address(0, True, dec)
     uaddr = ice.privatekey_to_address(0, False, dec)
     HEX = "%064x" % dec
@@ -340,12 +396,13 @@ def brute_btc(self, dec):
     wifu = ice.btc_pvk_to_wif(HEX, False)
     p2sh = ice.privatekey_to_address(1, True, dec)
     bech32 = ice.privatekey_to_address(2, True, dec)
+    ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
     length = len(bin(dec))
     length -=2
     if caddr in bloom_filterbtc:
         self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}')
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         with open('foundcaddr.txt', 'a') as result:
             result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}\n')
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}")
@@ -353,7 +410,7 @@ def brute_btc(self, dec):
     if uaddr in bloom_filterbtc:
         self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}')
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         with open('founduaddr.txt', 'a') as result:
             result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}\n')
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}")
@@ -361,7 +418,7 @@ def brute_btc(self, dec):
     if p2sh in bloom_filterbtc:
         self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address p2sh: {p2sh}')
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         with open('foundp2sh.txt', 'a') as result:
             result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address p2sh: {p2sh} \n')
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address p2sh: {p2sh}")
@@ -369,10 +426,18 @@ def brute_btc(self, dec):
     if bech32 in bloom_filterbtc:
         self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address bech32: {bech32}')
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
+        self.foundcrypto.config(text = f'{self.found}')
         with open('foundbech32.txt', 'a') as result:
             result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address bech32: {bech32}')
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address bech32: {bech32}")
+        self.popwinner()
+    if ethaddr in bloom_filtereth:
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nETH Address : {ethaddr}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('foundeth.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nETH Address : 0x{ethaddr}')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nETH Address : 0x{ethaddr}")
         self.popwinner()
     scantext = f'''
             *** DEC Key ***
@@ -386,6 +451,7 @@ def brute_btc(self, dec):
         WIF Compressed: {wifu}
  BTC Address p2sh: {p2sh}
  BTC Address bech32: {bech32}
+ Ethereum Address : 0x{ethaddr}
 {lines}'''
 
     return scantext
@@ -404,6 +470,7 @@ def get_page(self, page):
         uaddr = ice.privatekey_to_address(0, False, dec)
         p2sh = ice.privatekey_to_address(1, True, dec)
         bech32 = ice.privatekey_to_address(2, True, dec)
+        ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
         length = len(bin(dec))
         length -=2
         if caddr in bloom_filterbtc:
@@ -419,7 +486,7 @@ def get_page(self, page):
 '''
             self.page_brute.config(text = output)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             with open('foundcaddr.txt', 'a', encoding='utf-8') as f:
                 f.write(output)
             self.WINTEXT = output
@@ -439,7 +506,7 @@ def get_page(self, page):
 '''
             self.page_brute.config(text = output)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             with open('founduaddr.txt', 'a', encoding='utf-8') as f:
                 f.write(output)
             self.WINTEXT = output
@@ -458,7 +525,7 @@ def get_page(self, page):
 '''
             self.page_brute.config(text = output)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             with open('foundp2sh.txt', 'a', encoding='utf-8') as f:
                 f.write(output)
             self.WINTEXT = output
@@ -479,8 +546,26 @@ def get_page(self, page):
 
             self.page_brute.config(text = output)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             with open('foundbech32.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+        if ethaddr in bloom_filtereth:
+            output = f'''\n
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : ETH Address : 0x{ethaddr}
+{lines}
+'''
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('foundeth.txt', 'a', encoding='utf-8') as f:
                 f.write(output)
             self.WINTEXT = output
             self.popwinner()
@@ -498,72 +583,48 @@ def get_page(self, page):
  BTC Address Uncompressed: {uaddr}
  BTC Address p2sh: {p2sh}
  BTC Address bech32: {bech32}
+ Ethereum Address : 0x{ethaddr}
 {lines}'''
     return scantext
     
 def rboffline(self, passphrase):
     wallet = BrainWallet()
     private_key, caddr = wallet.generate_address_from_passphrase(passphrase)
-    brainvartext = (f'\n Private Key In HEX : \n\n {private_key} \n\n Bitcoin Adress : {caddr} ')
+    dec = int(private_key, 16)
+    uaddr = ice.privatekey_to_address(0, False, dec)
+    p2sh = ice.privatekey_to_address(1, True, dec)
+    bech32 = ice.privatekey_to_address(2, True, dec)
+    ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
+    brainvartext = (f'\n Private Key In HEX : \n\n {private_key} \n Bitcoin Adress Compressed : {caddr} \n Bitcoin Adress Uncompressed : {uaddr} \n Bitcoin Adress p2sh : {p2sh} \n Bitcoin Adress bech32 : {bech32} \n Ethereum Adress  : {ethaddr} ')
     if caddr in bloom_filterbtc:
         self.found+=1
-        self.foundbtc.config(text = f'{self.found}')
-        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress : {caddr}')
-        with open("found.txt", "a") as f:
-            f.write(self.WINTEXT)
-        self.popwinner()
-    return brainvartext
-
-def btc_hunter(self):
-    arr = np.array(self.grid)
-    binstring = ''.join(''.join(map(str, l)) for l in arr)
-    self.binstring_update.config(text = binstring)
-    self.binstring_update.update()
-    dec = int(binstring, 2)
-    self.decstring_update.config(text = dec)
-    self.decstring_update.update()
-    HEX = hex(int(binstring, 2))
-    self.hexstring_update.config(text = HEX)
-    self.hexstring_update.update()
-    caddr = ice.privatekey_to_address(0, True, dec)
-    uaddr = ice.privatekey_to_address(0, False, dec)
-    HEX = "%064x" % dec
-    wifc = ice.btc_pvk_to_wif(HEX)
-    wifu = ice.btc_pvk_to_wif(HEX, False)
-    self.caddrstring_update.config(text = caddr)
-    self.caddrstring_update.update()
-    self.wifcstring_update.config(text = wifc)
-    self.wifcstring_update.update()
-    self.uaddrstring_update.config(text = uaddr)
-    self.uaddrstring_update.update()
-    self.wifustring_update.config(text = wifu)
-    self.wifustring_update.update()
-    p2sh = ice.privatekey_to_address(1, True, dec)
-    self.p2shstring_update.config(text = p2sh)
-    self.p2shstring_update.update()
-    bech32 = ice.privatekey_to_address(2, True, dec)
-    self.bech32string_update.config(text = bech32)
-    self.bech32string_update.update()
-    if caddr in bloom_filterbtc:
-        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc} \nBinary Data: \n {binstring}")
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Compressed: {caddr}')
         with open("foundcaddr.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
     if uaddr in bloom_filterbtc:
-        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu} \nBinary Data: \n {binstring}")
-        with open("found.txt", "a") as f:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Uncompressed : {uaddr}')
+        with open("founduaddr.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
     if p2sh in bloom_filterbtc:
-        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address p2sh: {p2sh} \nBinary Data: \n {binstring}")
-        with open("found.txt", "a") as f:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress p2sh : {p2sh}')
+        with open("foundp2sh.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
-    if bech32 in bloom_filterbtc:
-        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Bc1: {bech32} \nBinary Data: \n {binstring}")
-        with open("found.txt", "a") as f:
+    if ethaddr in bloom_filtereth:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Ethereum Adress : {ethaddr}')
+        with open("foundeth.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
+    return brainvartext
 
 def hexhunter(self, dec, dec0, dec1, dec2, dec3, dec4, dec5, dec6, dec7, dec8, dec9, dec10, dec11, dec12, dec13, dec14, dec15, dec16, dec17, dec18):
     dec= int(dec)
@@ -587,6 +648,26 @@ def hexhunter(self, dec, dec0, dec1, dec2, dec3, dec4, dec5, dec6, dec7, dec8, d
     dec17= int(dec17)
     dec18= int(dec18)
     for r in range(0, 128):
+        ether = ice.privatekey_to_ETH_address(dec)[2:]
+        ether0 = ice.privatekey_to_ETH_address(dec0)[2:]
+        ether1 = ice.privatekey_to_ETH_address(dec1)[2:]
+        ether2 = ice.privatekey_to_ETH_address(dec2)[2:]
+        ether3 = ice.privatekey_to_ETH_address(dec3)[2:]
+        ether4 = ice.privatekey_to_ETH_address(dec4)[2:]
+        ether5 = ice.privatekey_to_ETH_address(dec5)[2:]
+        ether6 = ice.privatekey_to_ETH_address(dec6)[2:]
+        ether7 = ice.privatekey_to_ETH_address(dec7)[2:]
+        ether8 = ice.privatekey_to_ETH_address(dec8)[2:]
+        ether9 = ice.privatekey_to_ETH_address(dec9)[2:]
+        ether10 = ice.privatekey_to_ETH_address(dec10)[2:]
+        ether11 = ice.privatekey_to_ETH_address(dec11)[2:]
+        ether12 = ice.privatekey_to_ETH_address(dec12)[2:]
+        ether13 = ice.privatekey_to_ETH_address(dec13)[2:]
+        ether14 = ice.privatekey_to_ETH_address(dec14)[2:]
+        ether15 = ice.privatekey_to_ETH_address(dec15)[2:]
+        ether16 = ice.privatekey_to_ETH_address(dec16)[2:]
+        ether17 = ice.privatekey_to_ETH_address(dec17)[2:]
+        ether18 = ice.privatekey_to_ETH_address(dec18)[2:]
         btcC = ice.privatekey_to_address(0, True, dec)
         btcC0 = ice.privatekey_to_address(0, True, dec0)
         btcC1 = ice.privatekey_to_address(0, True, dec1)
@@ -680,7 +761,7 @@ def hexhunter(self, dec, dec0, dec1, dec2, dec3, dec4, dec5, dec6, dec7, dec8, d
 {hex(dec7)[2:].zfill(64)}    |   {hex(dec17)[2:].zfill(64)}
 {hex(dec8)[2:].zfill(64)}    |   {hex(dec18)[2:].zfill(64)}
 '''
-        if  btcC in bloom_filterbtc or btcU in bloom_filterbtc or btcP in bloom_filterbtc or btcB in bloom_filterbtc:
+        if  btcC in bloom_filterbtc or btcU in bloom_filterbtc or btcP in bloom_filterbtc or btcB in bloom_filterbtc or ether in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex):  {hex(dec)[2:].zfill(64)}
 Decimal     (dec): {dec}
@@ -688,16 +769,17 @@ BTCc        : {btcC}
 BTCu        : {btcU}
 BTC p2sh    : {btcP}
 BTC BC1     : {btcB}
+Ethereum    : 0x{ether}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC0 in bloom_filterbtc or btcU0 in bloom_filterbtc or btcP0 in bloom_filterbtc or btcB0 in bloom_filterbtc:
+        if btcC0 in bloom_filterbtc or btcU0 in bloom_filterbtc or btcP0 in bloom_filterbtc or btcB0 in bloom_filterbtc or ether0 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec0)[2:].zfill(64)}
 Decimal     (dec): {dec0}
@@ -705,16 +787,17 @@ BTCc        : {btcC0}
 BTCu        : {btcU0}
 BTC p2sh    : {btcP0}
 BTC BC1     : {btcB0}
+Ethereum    : 0x{ether0}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC1 in bloom_filterbtc or btcU1 in bloom_filterbtc or btcP1 in bloom_filterbtc or btcB1 in bloom_filterbtc:
+        if btcC1 in bloom_filterbtc or btcU1 in bloom_filterbtc or btcP1 in bloom_filterbtc or btcB1 in bloom_filterbtc or ether1 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec1)[2:].zfill(64)}
 Decimal     (dec): {dec1}
@@ -722,16 +805,17 @@ BTCc        : {btcC1}
 BTCu        : {btcU1}
 BTC p2sh    : {btcP1}
 BTC BC1     : {btcB1}
+Ethereum    : 0x{ether1}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC2 in bloom_filterbtc or btcU2 in bloom_filterbtc or btcP2 in bloom_filterbtc or btcB2 in bloom_filterbtc:
+        if btcC2 in bloom_filterbtc or btcU2 in bloom_filterbtc or btcP2 in bloom_filterbtc or btcB2 in bloom_filterbtc or ether2 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec2)[2:].zfill(64)}
 Decimal     (dec): {dec2}
@@ -739,16 +823,17 @@ BTCc        : {btcC2}
 BTCu        : {btcU2}
 BTC p2sh    : {btcP2}
 BTC BC1     : {btcB2}
+Ethereum    : 0x{ether2}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC3 in bloom_filterbtc or btcU3 in bloom_filterbtc or btcP3 in bloom_filterbtc or btcB3 in bloom_filterbtc:
+        if btcC3 in bloom_filterbtc or btcU3 in bloom_filterbtc or btcP3 in bloom_filterbtc or btcB3 in bloom_filterbtc or ether3 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec3)[2:].zfill(64)}
 Decimal     (dec): {dec3}
@@ -756,16 +841,17 @@ BTCc        : {btcC3}
 BTCu        : {btcU3}
 BTC p2sh    : {btcP3}
 BTC BC1     : {btcB3}
+Ethereum    : 0x{ether3}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC4 in bloom_filterbtc or btcU4 in bloom_filterbtc or btcP4 in bloom_filterbtc or btcB4 in bloom_filterbtc:
+        if btcC4 in bloom_filterbtc or btcU4 in bloom_filterbtc or btcP4 in bloom_filterbtc or btcB4 in bloom_filterbtc or ether4 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec4)[2:].zfill(64)}
 Decimal     (dec): {dec4}
@@ -773,16 +859,17 @@ BTCc        : {btcC4}
 BTCu        : {btcU4}
 BTC p2sh    : {btcP4}
 BTC BC1     : {btcB4}
+Ethereum    : 0x{ether4}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC5 in bloom_filterbtc or btcU5 in bloom_filterbtc or btcP5 in bloom_filterbtc or btcB5 in bloom_filterbtc:
+        if btcC5 in bloom_filterbtc or btcU5 in bloom_filterbtc or btcP5 in bloom_filterbtc or btcB5 in bloom_filterbtc or ether5 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec5)[2:].zfill(64)}
 Decimal     (dec): {dec5}
@@ -790,16 +877,17 @@ BTCc        : {btcC5}
 BTCu        : {btcU5}
 BTC p2sh    : {btcP5}
 BTC BC1     : {btcB5}
+Ethereum    : 0x{ether5}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC6 in bloom_filterbtc or btcU6 in bloom_filterbtc or btcP6 in bloom_filterbtc or btcB6 in bloom_filterbtc:
+        if btcC6 in bloom_filterbtc or btcU6 in bloom_filterbtc or btcP6 in bloom_filterbtc or btcB6 in bloom_filterbtc or ether6 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec6)[2:].zfill(64)}
 Decimal     (dec): {dec6}
@@ -807,16 +895,17 @@ BTCc        : {btcC6}
 BTCu        : {btcU6}
 BTC p2sh    : {btcP6}
 BTC BC1     : {btcB6}
+Ethereum    : 0x{ether6}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC7 in bloom_filterbtc or btcU7 in bloom_filterbtc or btcP7 in bloom_filterbtc or btcB7 in bloom_filterbtc:
+        if btcC7 in bloom_filterbtc or btcU7 in bloom_filterbtc or btcP7 in bloom_filterbtc or btcB7 in bloom_filterbtc or ether7 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec7)[2:].zfill(64)}
 Decimal     (dec): {dec7}
@@ -824,16 +913,17 @@ BTCc        : {btcC7}
 BTCu        : {btcU7}
 BTC p2sh    : {btcP7}
 BTC BC1     : {btcB7}
+Ethereum    : 0x{ether7}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC8 in bloom_filterbtc or btcU8 in bloom_filterbtc or btcP8 in bloom_filterbtc or btcB8 in bloom_filterbtc:
+        if btcC8 in bloom_filterbtc or btcU8 in bloom_filterbtc or btcP8 in bloom_filterbtc or btcB8 in bloom_filterbtc or ether8 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec8)[2:].zfill(64)}
 Decimal     (dec): {dec8}
@@ -841,16 +931,17 @@ BTCc        : {btcC8}
 BTCu        : {btcU8}
 BTC p2sh    : {btcP8}
 BTC BC1     : {btcB8}
+Ethereum    : 0x{ether8}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC9 in bloom_filterbtc or btcU9 in bloom_filterbtc or btcP9 in bloom_filterbtc or btcB9 in bloom_filterbtc:
+        if btcC9 in bloom_filterbtc or btcU9 in bloom_filterbtc or btcP9 in bloom_filterbtc or btcB9 in bloom_filterbtc or ether9 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec9)[2:].zfill(64)}
 Decimal     (dec): {dec9}
@@ -858,16 +949,17 @@ BTCc        : {btcC9}
 BTCu        : {btcU9}
 BTC p2sh    : {btcP9}
 BTC BC1     : {btcB9}
+Ethereum    : 0x{ether9}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC10 in bloom_filterbtc or btcU10 in bloom_filterbtc or btcP10 in bloom_filterbtc or btcB10 in bloom_filterbtc:
+        if btcC10 in bloom_filterbtc or btcU10 in bloom_filterbtc or btcP10 in bloom_filterbtc or btcB10 in bloom_filterbtc or ether10 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec10)[2:].zfill(64)}
 Decimal     (dec): {dec10}
@@ -875,16 +967,17 @@ BTCc        : {btcC10}
 BTCu        : {btcU10}
 BTC p2sh    : {btcP10}
 BTC BC1     : {btcB10}
+Ethereum    : 0x{ether10}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC11 in bloom_filterbtc or btcU11 in bloom_filterbtc or btcP11 in bloom_filterbtc or btcB11 in bloom_filterbtc:
+        if btcC11 in bloom_filterbtc or btcU11 in bloom_filterbtc or btcP11 in bloom_filterbtc or btcB11 in bloom_filterbtc or ether11 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec11)[2:].zfill(64)}
 Decimal     (dec): {dec11}
@@ -892,16 +985,17 @@ BTCc        : {btcC11}
 BTCu        : {btcU11}
 BTC p2sh    : {btcP11}
 BTC BC1     : {btcB11}
+Ethereum    : 0x{ether11}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC12 in bloom_filterbtc or btcU12 in bloom_filterbtc or btcP12 in bloom_filterbtc or btcB12 in bloom_filterbtc:
+        if btcC12 in bloom_filterbtc or btcU12 in bloom_filterbtc or btcP12 in bloom_filterbtc or btcB12 in bloom_filterbtc or ether12 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec12)[2:].zfill(64)}
 Decimal     (dec): {dec12}
@@ -909,16 +1003,17 @@ BTCc        : {btcC12}
 BTCu        : {btcU12}
 BTC p2sh    : {btcP12}
 BTC BC1     : {btcB12}
+Ethereum    : 0x{ether12}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC13 in bloom_filterbtc or btcU13 in bloom_filterbtc or btcP13 in bloom_filterbtc or btcB13 in bloom_filterbtc:
+        if btcC13 in bloom_filterbtc or btcU13 in bloom_filterbtc or btcP13 in bloom_filterbtc or btcB13 in bloom_filterbtc or ether13 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec13)[2:].zfill(64)}
 Decimal     (dec): {dec13}
@@ -926,16 +1021,17 @@ BTCc        : {btcC13}
 BTCu        : {btcU13}
 BTC p2sh    : {btcP13}
 BTC BC1     : {btcB13}
+Ethereum    : 0x{ether13}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC14 in bloom_filterbtc or btcU14 in bloom_filterbtc or btcP14 in bloom_filterbtc or btcB14 in bloom_filterbtc:
+        if btcC14 in bloom_filterbtc or btcU14 in bloom_filterbtc or btcP14 in bloom_filterbtc or btcB14 in bloom_filterbtc or ether14 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec14)[2:].zfill(64)}
 Decimal     (dec): {dec14}
@@ -943,16 +1039,17 @@ BTCc        : {btcC14}
 BTCu        : {btcU14}
 BTC p2sh    : {btcP14}
 BTC BC1     : {btcB14}
+Ethereum    : 0x{ether14}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC15 in bloom_filterbtc or btcU15 in bloom_filterbtc or btcP15 in bloom_filterbtc or btcB15 in bloom_filterbtc:
+        if btcC15 in bloom_filterbtc or btcU15 in bloom_filterbtc or btcP15 in bloom_filterbtc or btcB15 in bloom_filterbtc or ether15 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec15)[2:].zfill(64)}
 Decimal     (dec): {dec15}
@@ -960,16 +1057,17 @@ BTCc        : {btcC15}
 BTCu        : {btcU15}
 BTC p2sh    : {btcP15}
 BTC BC1     : {btcB15}
+Ethereum    : 0x{ether15}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC16 in bloom_filterbtc or btcU16 in bloom_filterbtc or btcP16 in bloom_filterbtc or btcB16 in bloom_filterbtc:
+        if btcC16 in bloom_filterbtc or btcU16 in bloom_filterbtc or btcP16 in bloom_filterbtc or btcB16 in bloom_filterbtc or ether16 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec16)[2:].zfill(64)}
 Decimal     (dec): {dec16}
@@ -977,16 +1075,17 @@ BTCc        : {btcC16}
 BTCu        : {btcU16}
 BTC p2sh    : {btcP16}
 BTC BC1     : {btcB16}
+Ethereum    : 0x{ether16}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC17 in bloom_filterbtc or btcU17 in bloom_filterbtc or btcP17 in bloom_filterbtc or btcB17 in bloom_filterbtc:
+        if btcC17 in bloom_filterbtc or btcU17 in bloom_filterbtc or btcP17 in bloom_filterbtc or btcB17 in bloom_filterbtc or ether17 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec17)[2:].zfill(64)}
 Decimal     (dec): {dec17}
@@ -994,16 +1093,17 @@ BTCc        : {btcC17}
 BTCu        : {btcU17}
 BTC p2sh    : {btcP17}
 BTC BC1     : {btcB17}
+Ethereum    : 0x{ether17}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
-        if btcC18 in bloom_filterbtc or btcU18 in bloom_filterbtc or btcP18 in bloom_filterbtc or btcB18 in bloom_filterbtc:
+        if btcC18 in bloom_filterbtc or btcU18 in bloom_filterbtc or btcP18 in bloom_filterbtc or btcB18 in bloom_filterbtc or ether18 in bloom_filtereth:
             wintext = f'''
 PrivateKey  (hex): {hex(dec18)[2:].zfill(64)}
 Decimal     (dec): {dec18}
@@ -1011,13 +1111,14 @@ BTCc        : {btcC18}
 BTCu        : {btcU18}
 BTC p2sh    : {btcP18}
 BTC BC1     : {btcB18}
+Ethereum    : 0x{ether18}
 =================================
 '''
             f=open('found.txt','a')
             f.write(wintext)
             self.rotation_brute.config(text = wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         dec+=r 
@@ -1116,6 +1217,9 @@ def recovery_main(self, scan_IN, rec_IN, mode):
         dec = btc_address_from_private_key(potential_key, secret_type=secret_type)
         uaddr = ice.privatekey_to_address(0, False, dec)
         caddr = ice.privatekey_to_address(0, True, dec)
+        p2sh = ice.privatekey_to_address(1, True, dec)
+        bech32 = ice.privatekey_to_address(2, True, dec)
+        ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
         self.labelWIF3.config(text = potential_key)
         self.labelWIF3.update()
         remaining -= 1
@@ -1123,17 +1227,41 @@ def recovery_main(self, scan_IN, rec_IN, mode):
         self.labelWIF4.update()
         if caddr in bloom_filterbtc:
             wintext = f"\n key: {potential_key} address: {caddr}"
-            f=open('found.txt','a')
+            f=open('foundcaddr.txt','a')
             f.write(wintext)
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto_recovery.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         if uaddr in bloom_filterbtc:
             wintext = f"\n key: {potential_key} address: {uaddr}"
-            f=open('found.txt','a')
+            f=open('founduaddr.txt','a')
             self.found+=1
-            self.foundbtc.config(text = f'{self.found}')
+            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.WINTEXT = wintext
+            self.popwinner()
+        if p2sh in bloom_filterbtc:
+            wintext = f"\n key: {potential_key} address: {p2sh}"
+            f=open('foundp2sh.txt','a')
+            f.write(wintext)
+            self.found+=1
+            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.WINTEXT = wintext
+            self.popwinner()
+        if bech32 in bloom_filterbtc:
+            wintext = f"\n key: {potential_key} address: {bech32}"
+            f=open('foundbech32.txt','a')
+            f.write(wintext)
+            self.found+=1
+            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.WINTEXT = wintext
+            self.popwinner()
+        if ethaddr in bloom_filtereth:
+            wintext = f"\n key: {potential_key} address: 0x{ethaddr}"
+            f=open('foundbech32.txt','a')
+            f.write(wintext)
+            self.found+=1
+            self.foundcrypto_recovery.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
             
@@ -1176,7 +1304,7 @@ class MainWindow():
            run3= False
         ###########  Main Window Program Menu Bar ###########
         self._window = tkinter.Tk()
-        self._window.title("MiniHunter.py @ Mizogg.co.uk")
+        self._window.title("MiniHunterCrypto.py @ Mizogg.co.uk")
         # self._window.iconbitmap('images/ico')
         self._window.config(bg="black")
         self._window.geometry("660x500")
@@ -1189,29 +1317,29 @@ class MainWindow():
         self._window.helpmenu = Menu(self._window.menubar, tearoff=0)
         self._window.helpmenu.add_command(label="Help Telegram Group", command=opentelegram)
         self._window.helpmenu.add_command(label="Mizogg Website", command=openweb)
-        self._window.helpmenu.add_command(label="About MiniHunter", command=self.startpop)
+        self._window.helpmenu.add_command(label="About MiniHunterCrypto", command=self.startpop)
         self._window.menubar.add_cascade(label="Help", menu=self._window.helpmenu)
         self._window.config(menu=self._window.menubar)
         self.my_notebook = ttk.Notebook(self._window)
         self.my_notebook.pack(pady=5)
         self.main_frame = Frame(self.my_notebook, width=640, height=480)
-        self.bitcoin_frame = Frame(self.my_notebook, width=640, height=480)
+        self.crypto_frame = Frame(self.my_notebook, width=640, height=480)
         self.page_frame = Frame(self.my_notebook, width=640, height=480)
         self.hex_frame = Frame(self.my_notebook, width=640, height=480)
         self.brain_frame = Frame(self.my_notebook, width=640, height=480)
         self.word_frame = Frame(self.my_notebook, width=640, height=480)
         self.recovery_frame = Frame(self.my_notebook, width=640, height=480)
         self.main_frame.pack(fill="both", expand=1)
-        self.bitcoin_frame.pack(fill="both", expand=1)
+        self.crypto_frame.pack(fill="both", expand=1)
         self.page_frame.pack(fill="both", expand=1)
         self.hex_frame.pack(fill="both", expand=1)
         self.brain_frame.pack(fill="both", expand=1)
         self.word_frame.pack(fill="both", expand=1)
         self.recovery_frame.pack(fill="both", expand=1)
         ########### TAB ORDER ###########
-        self.my_notebook.add(self.bitcoin_frame, text="Bitcoin Hunting")
+        self.my_notebook.add(self.crypto_frame, text="Crytpo Hunting")
         self.my_notebook.add(self.page_frame, text="Hunting by Pages")
-        self.my_notebook.add(self.hex_frame, text="Rotation4Bit")
+        self.my_notebook.add(self.hex_frame, text="Rotation5Bit")
         self.my_notebook.add(self.brain_frame, text="Brain Hunting")
         self.my_notebook.add(self.word_frame, text="Mnemonic Hunting")
         self.my_notebook.add(self.recovery_frame, text="Recovery Tools")
@@ -1267,8 +1395,8 @@ class MainWindow():
         self.totalA.place(x=320,y=50)
         self.addcount = tkinter.Label(self._window, text=countadd(),font=("Arial",11),bg="#F0F0F0",fg="purple").place(x=50,y=80)
         self.totalbtc = tkinter.Label(self._window, text="Total Found ",font=("Arial",12),bg="#F0F0F0",fg="purple").place(x=430,y=30)
-        self.foundbtc = tkinter.Label(self._window, bg="#F0F0F0",font=("Arial",14),text="0")
-        self.foundbtc.place(x=460,y=50)
+        self.foundcrypto = tkinter.Label(self._window, bg="#F0F0F0",font=("Arial",14),text="0")
+        self.foundcrypto.place(x=460,y=50)
         ########### brain_frame ###########
         self.brain_update = tkinter.Label(self.brain_frame, bg="#F0F0F0",font=("Arial",9),text="", width=80, fg="Red")
         self.brain_update.place(x=20,y=220)
@@ -1277,7 +1405,7 @@ class MainWindow():
         self.start1= tkinter.Button(self.brain_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= self.start, fg='green').place(x=450,y=120)
         self.stop1= tkinter.Button(self.brain_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= self.stop, fg='red').place(x=410,y=120)
         self.labelbrain = tkinter.Label(self.brain_frame, text="Brain \nWords ", font=("Arial",10)).place(x=5,y=75)
-        self._txt_inputbrain = tkinter.Entry(self.brain_frame, width=52, font=("Consolas", 11))
+        self._txt_inputbrain = tkinter.Entry(self.brain_frame, width=70, font=("Consolas", 11))
         self._txt_inputbrain.insert(0, 'how much wood could a woodchuck chuck if a woodchuck could chuck wood')
         self._txt_inputbrain.place(x=60,y=80)
         self._txt_inputbrain.focus()
@@ -1295,49 +1423,49 @@ class MainWindow():
         self.my_button = tkinter.Button(self.brain_frame, text= "1 Word List ",font=("Arial",8),bg="#ee6b6e", command= self.Random_brain_offline1).place(x=160,y=120)
         self.my_button = tkinter.Button(self.brain_frame, text= "Brain Words ",font=("Arial",8),bg="#A3E4A7", command= self.Random_brain_offline).place(x=235,y=120)
         self.my_button = tkinter.Button(self.brain_frame, text= "Brain String ",font=("Arial",8),bg="#F3E4C8", command= self.Random_brain_offline2).place(x=315,y=120)
-        self._btc_bin = tkinter.Button(self.brain_frame, text="Enter", font=("Consolas", 10), command=self.Random_brain_single).place(x=545,y=75)
-        ########### bitcoin_frame ###########
-        self.bwg = tkinter.Label(self.bitcoin_frame, text="Bitcoin Wallet Generator ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=60,y=75)
-        self.bfr = tkinter.Label(self.bitcoin_frame, bg="#F0F0F0",font=("Arial",10),text="")
+        self._btc_bin = tkinter.Button(self.brain_frame, text="Enter", font=("Consolas", 10), command=self.Random_brain_single).place(x=545,y=110)
+        ########### crypto_frame ###########
+        self.bwg = tkinter.Label(self.crypto_frame, text="Crypto Wallet Generator ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=60,y=75)
+        self.bfr = tkinter.Label(self.crypto_frame, bg="#F0F0F0",font=("Arial",10),text="")
         self.bfr.place(x=20,y=200)
-        self.labelstart = tkinter.Label(self.bitcoin_frame, text="Start Dec ", font=("Arial",10)).place(x=5,y=95)
-        self._txt_inputstart = tkinter.Entry(self.bitcoin_frame, width=42, font=("Consolas", 11))
+        self.labelstart = tkinter.Label(self.crypto_frame, text="Start Dec ", font=("Arial",10)).place(x=5,y=95)
+        self._txt_inputstart = tkinter.Entry(self.crypto_frame, width=56, font=("Consolas", 11))
         self._txt_inputstart.insert(0, '1')
         self._txt_inputstart.place(x=75,y=100)
         self._txt_inputstart.focus()
-        self.labelstop = tkinter.Label(self.bitcoin_frame, text="Stop Dec ", font=("Arial",10)).place(x=5,y= 120)
-        self._txt_inputstop = tkinter.Entry(self.bitcoin_frame, width=42, font=("Consolas", 11))
+        self.labelstop = tkinter.Label(self.crypto_frame, text="Stop Dec ", font=("Arial",10)).place(x=5,y= 120)
+        self._txt_inputstop = tkinter.Entry(self.crypto_frame, width=56, font=("Consolas", 11))
         self._txt_inputstop.insert(0, stopdec)
         self._txt_inputstop.place(x=75,y=125)
         self._txt_inputstop.focus()
-        self.labelmag = tkinter.Label(self.bitcoin_frame, text="Jump \n Mag ", font=("Arial",10)).place(x=440,y= 90)
-        self._txt_inputmag = tkinter.Entry(self.bitcoin_frame, width=4, font=("Consolas", 11))
+        self.labelmag = tkinter.Label(self.crypto_frame, text="Jump \ Mag ", font=("Arial",10)).place(x=550,y= 90)
+        self._txt_inputmag = tkinter.Entry(self.crypto_frame, width=4, font=("Consolas", 11))
         self._txt_inputmag.insert(0, '1')
-        self._txt_inputmag.place(x=440,y=125)
+        self._txt_inputmag.place(x=550,y=125)
         self._txt_inputmag.focus()
-        self.r1 = tkinter.Button(self.bitcoin_frame, text=" Random Start-Stop",font=("Arial",8),bg="#A3E4D7",command=self.Random_Bruteforce_Speed).place(x=13,y=160)
-        self.s1 = tkinter.Button(self.bitcoin_frame, text=" Sequential Start-Stop",font=("Arial",8),bg="#B3B4D7",command=self.Sequential_Bruteforce_speed).place(x=120,y=160)
-        self.sb1 = tkinter.Button(self.bitcoin_frame, text=" Backward Stop-Start ",font=("Arial",8),bg="#C3C4D7",command=self.Sequential_Bruteforce_speed_back).place(x=240,y=160)
-        self.start= tkinter.Button(self.bitcoin_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= self.start, fg='green').place(x=460,y=160)
-        self.stop= tkinter.Button(self.bitcoin_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= self.stop, fg='red').place(x=420,y=160)
+        self.r1 = tkinter.Button(self.crypto_frame, text=" Random Start-Stop",font=("Arial",8),bg="#A3E4D7",command=self.Random_Bruteforce_Speed).place(x=13,y=160)
+        self.s1 = tkinter.Button(self.crypto_frame, text=" Sequential Start-Stop",font=("Arial",8),bg="#B3B4D7",command=self.Sequential_Bruteforce_speed).place(x=120,y=160)
+        self.sb1 = tkinter.Button(self.crypto_frame, text=" Backward Stop-Start ",font=("Arial",8),bg="#C3C4D7",command=self.Sequential_Bruteforce_speed_back).place(x=240,y=160)
+        self.start= tkinter.Button(self.crypto_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= self.start, fg='green').place(x=460,y=160)
+        self.stop= tkinter.Button(self.crypto_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= self.stop, fg='red').place(x=420,y=160)
         ########### page_frame ###########
-        self.bwgpage = tkinter.Label(self.page_frame, text="Bitcoin Wallet Generator Based on Keys.lol 128 Private Keys per page",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
+        self.bwgpage = tkinter.Label(self.page_frame, text="Crypto Wallet Generator Based on Keys.lol 128 Private Keys per page",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
         self.page_brute = tkinter.Label(self.page_frame, bg="#F0F0F0",font=("Arial",10),text="")
         self.page_brute.place(x=20,y=200)
         self.labelstart = tkinter.Label(self.page_frame, text="Start Page ", font=("Arial",10)).place(x=5,y=95)
-        self._txt_inputstartpage = tkinter.Entry(self.page_frame, width=42, font=("Consolas", 11))
+        self._txt_inputstartpage = tkinter.Entry(self.page_frame, width=56, font=("Consolas", 11))
         self._txt_inputstartpage.insert(0, '1')
         self._txt_inputstartpage.place(x=75,y=100)
         self._txt_inputstartpage.focus()
         self.labelstoppage = tkinter.Label(self.page_frame, text="Stop Page ", font=("Arial",10)).place(x=5,y= 120)
-        self._txt_inputstoppage = tkinter.Entry(self.page_frame, width=42, font=("Consolas", 11))
+        self._txt_inputstoppage = tkinter.Entry(self.page_frame, width=56, font=("Consolas", 11))
         self._txt_inputstoppage.insert(0, '904625697166532776746648320380374280100293470930272690489102837043110636675')
         self._txt_inputstoppage.place(x=75,y=125)
         self._txt_inputstoppage.focus()
-        self.labelmagpage = tkinter.Label(self.page_frame, text="Jump Mag ", font=("Arial",10)).place(x=440,y= 95)
+        self.labelmagpage = tkinter.Label(self.page_frame, text="Jump \ Mag ", font=("Arial",10)).place(x=550,y= 95)
         self._txt_inputmagpage = tkinter.Entry(self.page_frame, width=4, font=("Consolas", 11))
         self._txt_inputmagpage.insert(0, '1')
-        self._txt_inputmagpage.place(x=440,y=125)
+        self._txt_inputmagpage.place(x=550,y=125)
         self._txt_inputmagpage.focus()
         self.r1page = tkinter.Button(self.page_frame, text=" Random Start-Stop",font=("Arial",8),bg="#A3E4D7",command=self.Random_Bruteforce_Speed_page).place(x=13,y=160)
         self.s1page = tkinter.Button(self.page_frame, text=" Sequential Start-Stop",font=("Arial",8),bg="#B3B4D7",command=self.Sequential_Bruteforce_speed_page).place(x=120,y=160)
@@ -1349,8 +1477,8 @@ class MainWindow():
         self.word_update.place(x=10,y=190)
         self.word_update1 = tkinter.Label(self.word_frame, bg="#F0F0F0",font=("Arial",8),text="")
         self.word_update1.place(x=40,y=210)
-        self.start2= tkinter.Button(self.word_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= start2, fg='green').place(x=480,y=50)
-        self.stop2= tkinter.Button(self.word_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= stop2, fg='red').place(x=440,y=50)
+        self.start2= tkinter.Button(self.word_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= start2, fg='green').place(x=580,y=120)
+        self.stop2= tkinter.Button(self.word_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= stop2, fg='red').place(x=540,y=120)
         self.titlem = tkinter.Label(self.word_frame, text="Mnemonic Words ",font=("Arial",12),bg="#F0F0F0",fg="Black").place(x=180,y=160)
         self.titlem2 = tkinter.Label(self.word_frame, text="Random Mnemonic Wallet Generator Pick Ammount of Words to Generate",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=30,y=90)
         self.my_buttonword = tkinter.Button(self.word_frame, text= "1 Word ",font=("Arial",8),bg="#A3E4A7", command= self.Random_word_offline).place(x=10,y=120)
@@ -1363,7 +1491,7 @@ class MainWindow():
         self.my_buttonword = tkinter.Button(self.word_frame, text= "21 Words ",font=("Arial",8),bg="#F3E4B8", command= self.Random_word_offline7).place(x=412,y=120)
         self.my_buttonword = tkinter.Button(self.word_frame, text= "24 Words ",font=("Arial",8),bg="#F3E4C8", command= self.Random_word_offline8).place(x=474,y=120)
         ########### hex_frame ###########
-        self.hext = tkinter.Label(self.hex_frame, text="Rotation4 Bitcoin 20 Scans 128 private keys per scan 10,240 Addresses  ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
+        self.hext = tkinter.Label(self.hex_frame, text="Rotation5 Bitcoin&Eth 20 Scans 128 private keys per scan 12,800 Addresses  ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
         self.hexl1 = tkinter.Label(self.hex_frame, text="Private Keys 1 - 10  ",font=("Arial",10),bg="#F0F0F0",fg="purple").place(x=60,y=270)
         self.hexl2 = tkinter.Label(self.hex_frame, text=" | ",font=("Arial",12),bg="#F0F0F0",fg="purple").place(x=270,y=270)
         self.hexl3 = tkinter.Label(self.hex_frame, text="Private Keys 11 - 20  ",font=("Arial",10),bg="#F0F0F0",fg="purple").place(x=350,y=270)
@@ -1553,7 +1681,7 @@ class MainWindow():
         self._txt_inputstophex18.insert(0, '256')
         self._txt_inputstophex18.place(x=460,y=235)
         self._txt_inputstophex18.focus()
-        self.hex1 = tkinter.Button(self.hex_frame, text=" Rotation \n 4 Generator ",font=("Arial",11),bg="#A3E4D7",command=self.rotation_four).place(x=510,y=190)
+        self.hex1 = tkinter.Button(self.hex_frame, text=" Rotation \n 5 Generator ",font=("Arial",11),bg="#A3E4D7",command=self.rotation_five).place(x=510,y=190)
         self.start3= tkinter.Button(self.hex_frame, text= "Start",font=("Arial",10),bg="#F0F0F0", command= start3, fg='green').place(x=510,y=140)
         self.stop3= tkinter.Button(self.hex_frame, text= "Stop",font=("Arial",10),bg="#F0F0F0", command= stop3, fg='red').place(x=560,y=140)
         ########### recovery_frame ###########
@@ -1643,7 +1771,7 @@ class MainWindow():
         self.page_brute.config(text = scantext)
         self.page_brute.update()
         total+=128
-        totaladd+=512
+        totaladd+=640
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
     
@@ -1680,11 +1808,11 @@ class MainWindow():
     ###########  Brute Program Main ###########
     def brute_results(self, dec):
         global total, totaladd
-        scantext = brute_btc(self, dec)
+        scantext = brute_crypto(self, dec)
         self.bfr.config(text = scantext)
         self.bfr.update()
         total+=1
-        totaladd+=4
+        totaladd+=5
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
 
@@ -1725,11 +1853,11 @@ class MainWindow():
         self.rotation_brute.config(text = scantext)
         self.rotation_brute.update()
         total+=20   # 2560
-        totaladd+= 80  #  10240
+        totaladd+= 100  #  10240
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
 
-    def rotation_four(self):
+    def rotation_five(self):
         startbit = self._txt_inputstarthex.get().strip().replace(" ", "")
         stopbit = self._txt_inputstophex.get().strip().replace(" ", "")
         startbit0 = self._txt_inputstarthex0.get().strip().replace(" ", "")
@@ -1803,7 +1931,7 @@ class MainWindow():
         self.brain_update.update()
         self.brain_update1.update()
         total+=1
-        totaladd+=1
+        totaladd+=5
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
         
@@ -1816,7 +1944,7 @@ class MainWindow():
         self.brain_update.update()
         self.brain_update1.update()
         total+=1
-        totaladd+=1
+        totaladd+=5
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
 
@@ -1873,7 +2001,7 @@ class MainWindow():
         self.widgetpop['text'] = "© MIZOGG 2018 - 2022"
         self.widgetpop['image'] = self.widgetpop.miz_image_png
         self.widgetpop.place(x=140,y=220)
-        self.label = tkinter.Label(self.pop, text='Welcome to MiniHunter...... \n\n Made By Mizogg.co.uk \n\n Version 1 15/12/22').pack(pady=10)
+        self.label = tkinter.Label(self.pop, text='Welcome to MiniHunter Multi Crypto...... \n\n Made By Mizogg.co.uk \n\n Version 1.1 17/12/22').pack(pady=10)
         self.label1 = tkinter.Label(self.pop, text= "MiniHunter application use at your own risk.\n There is no promise of warranty.\n\n  Auto Agree 5 secs", font=('Helvetica 8 bold')).pack(pady=10)
         self.framepop = Frame(self.pop)
         self.framepop.pack(pady=10)
@@ -1896,7 +2024,7 @@ class MainWindow():
         self.word_update.update()
         self.word_update1.update()
         total+=1
-        totaladd+=3
+        totaladd+=4
         self.totalC.config(text = f'{total}')
         self.totalA.config(text = f'{totaladd}')
 
@@ -1951,7 +2079,7 @@ class MainWindow():
             dec_value = bin2dec(bin_value)
             hex_value = bin2hex(bin_value)
             bit_value = bin2bit(bin_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Binary conversion")
@@ -1963,7 +2091,7 @@ class MainWindow():
             bin_value = bit2bin(bit_value)
             dec_value = bit2dec(bit_value)
             hex_value = bit2hex(bit_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Bits conversion")
@@ -1975,7 +2103,7 @@ class MainWindow():
             bin_value = dec2bin(dec_value)
             hex_value = dec2hex(dec_value)
             bit_value = dec2bit(dec_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Decimal conversion")
@@ -1987,7 +2115,7 @@ class MainWindow():
             bin_value = dec2bin(dec_value)
             hex_value = dec2hex(dec_value)
             bit_value = dec2bit(dec_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Decimal conversion")
@@ -2000,7 +2128,7 @@ class MainWindow():
             bin_value = dec2bin(dec_value)
             hex_value = dec2hex(dec_value)
             bit_value = dec2bit(dec_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Decimal conversion")
@@ -2013,7 +2141,7 @@ class MainWindow():
             bin_value = dec2bin(dec_value)
             hex_value = dec2hex(dec_value)
             bit_value = dec2bit(dec_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Decimal conversion")
@@ -2025,7 +2153,7 @@ class MainWindow():
             bin_value = hex2bin(hex_value)
             dec_value = hex2dec(hex_value)
             bit_value = hex2bit(hex_value)
-            btc_value = int2addr(dec_value)
+            btc_value = int2addr(self, dec_value)
             self._set_values(bin_value, dec_value, hex_value, bit_value, btc_value)
         except Exception as ex:
             tkinter.messagebox.showerror("Error", "Invalid Hexadecimal conversion")
