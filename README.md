@@ -1,15 +1,15 @@
 # Tkinter-Power-Mini
-Bitcoin Tkinter Mini GUI Hunter
+Bitcoin&Ethereum Tkinter Mini GUI Hunter
 
 MiniHunter.py
 
-Bitcoin Wallet Generator Based on Keys.lol 128 Private Keys per page
+Bitcoin and Ethereum Wallet Generator Based on Keys.lol 128 Private Keys per page
 
-![image](https://user-images.githubusercontent.com/88630056/207971396-7c6832f1-ea72-4abc-969b-a466116f8735.png)
+![image](https://user-images.githubusercontent.com/88630056/208261811-6eeb55a6-afce-485d-b871-5b906af9208b.png)
 
-Rotation4 Bitcoin 20 Scans 128 private keys per scan 10,240 Addresses
+Rotation5 Bitcoin&Ethereum 20 Scans 128 private keys per scan 12,800 Addresses
 
-![image](https://user-images.githubusercontent.com/88630056/207971620-1d672fa2-380a-4956-964a-0031ad6886dd.png)
+![image](https://user-images.githubusercontent.com/88630056/208262057-155ce4ba-f884-4ce5-9337-506a75ddbe2b.png)
 
  WIF HEX DEC Recovery Tools 
  
