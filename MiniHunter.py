@@ -1,6 +1,6 @@
-#!/usr/bin/env python3   OFFLINE VERSION
+#!/usr/bin/env python3   OFFLINE VERSION ETH Vanity
 # -*- coding: utf-8 -*-
-#Created by @Mizogg 17.12.2022 https://t.me/CryptoCrackersUK
+#Created by @Mizogg 23.12.2022 https://t.me/CryptoCrackersUK
 import hmac, struct, codecs, sys, os, binascii, hashlib, re, webbrowser, random, string
 from tkinter import * 
 from tkinter import ttk
@@ -336,6 +336,11 @@ derivation_total_path_to_check = 1
 
 
 def rwoffline(self, mnem):
+    startadd = self._txt_inputvanword.get()
+    startadd1 = self._txt_inputvanword1.get()
+    startadd2 = self._txt_inputvanword2.get()
+    startadd3 = self._txt_inputvanword3.get()
+    startadd4 = self._txt_inputvanword4.get()
     seed = mnem_to_seed(mnem)
     pvk = bip39seed_to_private_key(seed, derivation_total_path_to_check)
     pvk2 = bip39seed_to_private_key2(seed, derivation_total_path_to_check)
@@ -357,7 +362,7 @@ def rwoffline(self, mnem):
     p2sh = ice.privatekey_to_address(1, True, (int.from_bytes(pvk2, "big")))
     bech32 = ice.privatekey_to_address(2, True, (int.from_bytes(pvk3, "big")))
     ethaddr = ice.privatekey_to_ETH_address(int.from_bytes(pvk4, "big"))[2:]
-    wordvartext = (f' Bitcoin {cpath} :  {caddr} \n Bitcoin {cpath} : Decimal Private Key \n {dec} \n Bitcoin {cpath} : Hexadecimal Private Key \n {HEX}  \n Bitcoin {ppath} :  {p2sh}\n Bitcoin {ppath} : Decimal Private Key \n {dec2} \n Bitcoin {ppath} :  Hexadecimal Private Key \n {HEX2} \n Bitcoin {bpath} : {bech32}\n Bitcoin {bpath} : Decimal Private Key \n {dec3} \n Bitcoin {bpath} : Hexadecimal Private Key \n {HEX3} \n ETH {epath} : 0x{ethaddr}\n ETH {epath} : Decimal Private Key \n {dec4} \n ETH {epath} : Hexadecimal Private Key \n {HEX4} ')
+    wordvartext = (f' Bitcoin {cpath} :  {caddr} \n Bitcoin {cpath} : Hexadecimal Private Key \n {HEX}  \n \n Bitcoin {ppath} :  {p2sh} \n Bitcoin {ppath} :  Hexadecimal Private Key \n {HEX2} \n\n  Bitcoin {bpath} : {bech32}\n Bitcoin {bpath} : Hexadecimal Private Key \n {HEX3} \n \n  ETH {epath} : 0x{ethaddr}\n ETH {epath} : Hexadecimal Private Key \n {HEX4} ')
     if caddr in bloom_filterbtc:
         self.found+=1
         self.foundcrypto.config(text = f'{self.found}')
@@ -386,9 +391,42 @@ def rwoffline(self, mnem):
         with open("foundeth.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
+    if caddr.startswith(startadd) or caddr.startswith(startadd1) or caddr.startswith(startadd2) or caddr.startswith(startadd3) or caddr.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {cpath} :  {caddr} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
+        with open("foundcaddr.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if p2sh.startswith(startadd) or p2sh.startswith(startadd1) or p2sh.startswith(startadd2) or p2sh.startswith(startadd3) or p2sh.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {ppath} :  {p2sh} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
+        with open("foundp2sh.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if bech32.startswith(startadd) or bech32.startswith(startadd1) or bech32.startswith(startadd2) or bech32.startswith(startadd3) or bech32.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n Mnemonic: {mnem} \n Bitcoin {bpath} :  {bech32} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
+        with open("foundbech32.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if ethaddr.startswith(startadd[2:]) or ethaddr.startswith(startadd1[2:]) or ethaddr.startswith(startadd2[2:]) or ethaddr.startswith(startadd3[2:]) or ethaddr.startswith(startadd4[2:]):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = f'\n Mnemonic: {mnem} \n Ethereum {epath} :  0x{ethaddr} \n Decimal Private Key \n {dec} \n Hexadecimal Private Key \n {HEX}  \n'
+        with open("foundeth.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
     return wordvartext
     
 def brute_crypto(self, dec):
+    startadd = self._txt_inputvancrypto.get()
+    startadd1 = self._txt_inputvancrypto1.get()
+    startadd2 = self._txt_inputvancrypto2.get()
+    startadd3 = self._txt_inputvancrypto3.get()
+    startadd4 = self._txt_inputvancrypto4.get()
     caddr = ice.privatekey_to_address(0, True, dec)
     uaddr = ice.privatekey_to_address(0, False, dec)
     HEX = "%064x" % dec
@@ -439,6 +477,46 @@ def brute_crypto(self, dec):
             result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nETH Address : 0x{ethaddr}')
         self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nETH Address : 0x{ethaddr}")
         self.popwinner()
+    if caddr.startswith(startadd) or caddr.startswith(startadd1) or caddr.startswith(startadd2) or caddr.startswith(startadd3) or caddr.startswith(startadd4):
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('foundcaddr.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}\n')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Compressed: {caddr} \nWIF Compressed: {wifc}")
+        self.popwinner()
+    if uaddr.startswith(startadd) or uaddr.startswith(startadd1) or uaddr.startswith(startadd2) or uaddr.startswith(startadd3) or uaddr.startswith(startadd4):
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('founduaddr.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}\n')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address Uncompressed: {uaddr} \nWIF Uncompressed: {wifu}")
+        self.popwinner()
+    if p2sh.startswith(startadd) or p2sh.startswith(startadd1) or p2sh.startswith(startadd2) or p2sh.startswith(startadd3) or p2sh.startswith(startadd4):
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address p2sh: {p2sh}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('foundp2sh.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address p2sh: {p2sh} \n')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address p2sh: {p2sh}")
+        self.popwinner()
+    if bech32 in bloom_filterbtc:
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nBTC Address bech32: {bech32}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('foundbech32.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nBTC Address bech32: {bech32}')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nBTC Address bech32: {bech32}")
+        self.popwinner()
+    if ethaddr.startswith(startadd[2:]) or ethaddr.startswith(startadd1[2:]) or ethaddr.startswith(startadd2[2:]) or ethaddr.startswith(startadd3[2:]) or ethaddr.startswith(startadd4[2:]):
+        self.bfr.config(text = f' WINNER WINNER Check found.txt \n Instance: Bruteforce \n DEC Key: {dec} Bits {length} \n HEX Key: {HEX} \nETH Address : {ethaddr}')
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        with open('foundeth.txt', 'a') as result:
+            result.write(f'\n Instance: Bruteforce \n DEC Key: {dec}\n Bits {length} \n HEX Key: {HEX} \nETH Address : 0x{ethaddr}')
+        self.WINTEXT = (f"DEC Key: {dec}\nHEX Key: {HEX} \nETH Address : 0x{ethaddr}")
+        self.popwinner()
     scantext = f'''
             *** DEC Key ***
  {dec}
@@ -459,8 +537,12 @@ def brute_crypto(self, dec):
 def get_page(self, page):
     #max = 904625697166532776746648320380374280100293470930272690489102837043110636675
     num = page
-
     startPrivKey = (page - 1) * 128 + 1
+    startadd = self._txt_inputvanpage.get()
+    startadd1 = self._txt_inputvanpage1.get()
+    startadd2 = self._txt_inputvanpage2.get()
+    startadd3 = self._txt_inputvanpage3.get()
+    startadd4 = self._txt_inputvanpage4.get()
     for i in range(0, 128):
         dec = int(startPrivKey)
         starting_key_hex = hex(startPrivKey)[2:].zfill(64)
@@ -569,6 +651,104 @@ def get_page(self, page):
                 f.write(output)
             self.WINTEXT = output
             self.popwinner()
+            
+        if caddr.startswith(startadd) or caddr.startswith(startadd1) or caddr.startswith(startadd2) or caddr.startswith(startadd3) or caddr.startswith(startadd4):
+            output = f'''\n
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : BTC Address Compressed : {caddr}
+{lines}
+'''
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('foundcaddr.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+
+        if uaddr.startswith(startadd) or uaddr.startswith(startadd1) or uaddr.startswith(startadd2) or uaddr.startswith(startadd3) or uaddr.startswith(startadd4):
+            output = f'''\n
+
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : BTC Address Uncompressed : {uaddr}
+{lines}
+'''
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('founduaddr.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+        if p2sh.startswith(startadd) or p2sh.startswith(startadd1) or p2sh.startswith(startadd2) or p2sh.startswith(startadd3) or p2sh.startswith(startadd4):
+            output = f'''\n
+
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : BTC Address Segwit : {p2sh}
+{lines}
+'''
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('foundp2sh.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+
+        if bech32.startswith(startadd) or bech32.startswith(startadd1) or bech32.startswith(startadd2) or bech32.startswith(startadd3) or bech32.startswith(startadd4):
+            output = f'''\n
+
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : BTC Address Bc1 : {bech32}
+{lines}
+'''
+
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('foundbech32.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+        if ethaddr.startswith(startadd[2:]) or ethaddr.startswith(startadd1[2:]) or ethaddr.startswith(startadd2[2:]) or ethaddr.startswith(startadd3[2:]) or ethaddr.startswith(startadd4[2:]):
+            output = f'''\n
+  : Private Key Page : {num}
+{lines}
+  : Private Key DEC : {startPrivKey} Bits : {length}
+{lines}
+  : Private Key HEX : {starting_key_hex}
+{lines}
+  : ETH Address : 0x{ethaddr}
+{lines}
+'''
+            self.page_brute.config(text = output)
+            self.found+=1
+            self.foundcrypto.config(text = f'{self.found}')
+            with open('foundeth.txt', 'a', encoding='utf-8') as f:
+                f.write(output)
+            self.WINTEXT = output
+            self.popwinner()
+            
         startPrivKey += 1
     scantext = f'''
   : Private Key Page : 
@@ -588,14 +768,19 @@ def get_page(self, page):
     return scantext
     
 def rboffline(self, passphrase):
+    startadd = self._txt_inputvanbrain.get()
+    startadd1 = self._txt_inputvanbrain1.get()
+    startadd2 = self._txt_inputvanbrain2.get()
+    startadd3 = self._txt_inputvanbrain3.get()
+    startadd4 = self._txt_inputvanbrain4.get()
     wallet = BrainWallet()
-    private_key, caddr = wallet.generate_address_from_passphrase(passphrase)
+    private_key, uaddr = wallet.generate_address_from_passphrase(passphrase)
     dec = int(private_key, 16)
-    uaddr = ice.privatekey_to_address(0, False, dec)
+    caddr = ice.privatekey_to_address(0, True, dec)
     p2sh = ice.privatekey_to_address(1, True, dec)
     bech32 = ice.privatekey_to_address(2, True, dec)
     ethaddr = ice.privatekey_to_ETH_address(dec)[2:] # [2:]
-    brainvartext = (f'\n Private Key In HEX : \n\n {private_key} \n Bitcoin Adress Compressed : {caddr} \n Bitcoin Adress Uncompressed : {uaddr} \n Bitcoin Adress p2sh : {p2sh} \n Bitcoin Adress bech32 : {bech32} \n Ethereum Adress  : {ethaddr} ')
+    brainvartext = (f'\n Private Key In HEX : \n\n {private_key} \n Bitcoin Adress Compressed : {caddr} \n Bitcoin Adress Uncompressed : {uaddr} \n Bitcoin Adress p2sh : {p2sh} \n Bitcoin Adress bech32 : {bech32} \n Ethereum Adress  : 0x{ethaddr} ')
     if caddr in bloom_filterbtc:
         self.found+=1
         self.foundcrypto.config(text = f'{self.found}')
@@ -617,7 +802,49 @@ def rboffline(self, passphrase):
         with open("foundp2sh.txt", "a") as f:
             f.write(self.WINTEXT)
         self.popwinner()
+    if bech32 in bloom_filterbtc:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Bc1 : {bech32}')
+        with open("foundbech32.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
     if ethaddr in bloom_filtereth:
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Ethereum Adress : {ethaddr}')
+        with open("foundeth.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if caddr.startswith(startadd) or caddr.startswith(startadd1) or caddr.startswith(startadd2) or caddr.startswith(startadd3) or caddr.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Compressed: {caddr}')
+        with open("foundcaddr.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if uaddr.startswith(startadd) or uaddr.startswith(startadd1) or uaddr.startswith(startadd2) or uaddr.startswith(startadd3) or uaddr.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Uncompressed : {uaddr}')
+        with open("founduaddr.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if p2sh.startswith(startadd) or p2sh.startswith(startadd1) or p2sh.startswith(startadd2) or p2sh.startswith(startadd3) or p2sh.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress p2sh : {p2sh}')
+        with open("foundp2sh.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if bech32.startswith(startadd) or bech32.startswith(startadd1) or bech32.startswith(startadd2) or bech32.startswith(startadd3) or bech32.startswith(startadd4):
+        self.found+=1
+        self.foundcrypto.config(text = f'{self.found}')
+        self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Bitcoin Adress Bc1 : {bech32}')
+        with open("foundbech32.txt", "a") as f:
+            f.write(self.WINTEXT)
+        self.popwinner()
+    if ethaddr.startswith(startadd[2:]) or ethaddr.startswith(startadd1[2:]) or ethaddr.startswith(startadd2[2:]) or ethaddr.startswith(startadd3[2:]) or ethaddr.startswith(startadd4[2:]):
         self.found+=1
         self.foundcrypto.config(text = f'{self.found}')
         self.WINTEXT = (f'\n BrainWallet: {passphrase} \n Private Key In HEX : {private_key} \n Ethereum Adress : {ethaddr}')
@@ -1230,14 +1457,14 @@ def recovery_main(self, scan_IN, rec_IN, mode):
             f=open('foundcaddr.txt','a')
             f.write(wintext)
             self.found+=1
-            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         if uaddr in bloom_filterbtc:
             wintext = f"\n key: {potential_key} address: {uaddr}"
             f=open('founduaddr.txt','a')
             self.found+=1
-            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         if p2sh in bloom_filterbtc:
@@ -1245,7 +1472,7 @@ def recovery_main(self, scan_IN, rec_IN, mode):
             f=open('foundp2sh.txt','a')
             f.write(wintext)
             self.found+=1
-            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         if bech32 in bloom_filterbtc:
@@ -1253,7 +1480,7 @@ def recovery_main(self, scan_IN, rec_IN, mode):
             f=open('foundbech32.txt','a')
             f.write(wintext)
             self.found+=1
-            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
         if ethaddr in bloom_filtereth:
@@ -1261,7 +1488,7 @@ def recovery_main(self, scan_IN, rec_IN, mode):
             f=open('foundbech32.txt','a')
             f.write(wintext)
             self.found+=1
-            self.foundcrypto_recovery.config(text = f'{self.found}')
+            self.foundcrypto.config(text = f'{self.found}')
             self.WINTEXT = wintext
             self.popwinner()
             
@@ -1307,7 +1534,7 @@ class MainWindow():
         self._window.title("MiniHunterCrypto.py @ Mizogg.co.uk")
         # self._window.iconbitmap('images/ico')
         self._window.config(bg="black")
-        self._window.geometry("660x500")
+        self._window.geometry("660x580")
         self._window.resizable(False, False)
         self._window.menubar = Menu(self._window)
         self._window.filemenu = Menu(self._window.menubar, tearoff=0)
@@ -1322,13 +1549,13 @@ class MainWindow():
         self._window.config(menu=self._window.menubar)
         self.my_notebook = ttk.Notebook(self._window)
         self.my_notebook.pack(pady=5)
-        self.main_frame = Frame(self.my_notebook, width=640, height=480)
-        self.crypto_frame = Frame(self.my_notebook, width=640, height=480)
-        self.page_frame = Frame(self.my_notebook, width=640, height=480)
-        self.hex_frame = Frame(self.my_notebook, width=640, height=480)
-        self.brain_frame = Frame(self.my_notebook, width=640, height=480)
-        self.word_frame = Frame(self.my_notebook, width=640, height=480)
-        self.recovery_frame = Frame(self.my_notebook, width=640, height=480)
+        self.main_frame = Frame(self.my_notebook, width=640, height=560)
+        self.crypto_frame = Frame(self.my_notebook, width=640, height=560)
+        self.page_frame = Frame(self.my_notebook, width=640, height=560)
+        self.hex_frame = Frame(self.my_notebook, width=640, height=560)
+        self.brain_frame = Frame(self.my_notebook, width=640, height=560)
+        self.word_frame = Frame(self.my_notebook, width=640, height=560)
+        self.recovery_frame = Frame(self.my_notebook, width=640, height=560)
         self.main_frame.pack(fill="both", expand=1)
         self.crypto_frame.pack(fill="both", expand=1)
         self.page_frame.pack(fill="both", expand=1)
@@ -1393,7 +1620,7 @@ class MainWindow():
         self.totaladd = tkinter.Label(self._window, text="Total Addresses   : ",font=("Arial",10),bg="#F0F0F0",fg="Black").place(x=200,y=50)
         self.totalA = tkinter.Label(self._window, bg="#F0F0F0",font=("Arial",10),text="")
         self.totalA.place(x=320,y=50)
-        self.addcount = tkinter.Label(self._window, text=countadd(),font=("Arial",11),bg="#F0F0F0",fg="purple").place(x=50,y=80)
+        self.addcount = tkinter.Label(self._window, text=countadd(),font=("Arial",11),bg="#F0F0F0",fg="purple").place(x=10,y=80)
         self.totalbtc = tkinter.Label(self._window, text="Total Found ",font=("Arial",12),bg="#F0F0F0",fg="purple").place(x=430,y=30)
         self.foundcrypto = tkinter.Label(self._window, bg="#F0F0F0",font=("Arial",14),text="0")
         self.foundcrypto.place(x=460,y=50)
@@ -1424,6 +1651,28 @@ class MainWindow():
         self.my_button = tkinter.Button(self.brain_frame, text= "Brain Words ",font=("Arial",8),bg="#A3E4A7", command= self.Random_brain_offline).place(x=235,y=120)
         self.my_button = tkinter.Button(self.brain_frame, text= "Brain String ",font=("Arial",8),bg="#F3E4C8", command= self.Random_brain_offline2).place(x=315,y=120)
         self._btc_bin = tkinter.Button(self.brain_frame, text="Enter", font=("Consolas", 10), command=self.Random_brain_single).place(x=545,y=110)
+        self.labelvanbrain = tkinter.Label(self.brain_frame, text=" Vanity Address \n Starting With ", font=("Arial",9), fg="red").place(x=5,y=490)
+        self._txt_inputvanbrain = tkinter.Entry(self.brain_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanbrain.insert(0, '1FeexV6bAH')
+        self._txt_inputvanbrain.place(x=100,y=500)
+        self._txt_inputvanbrain.focus()
+        self._txt_inputvanbrain1 = tkinter.Entry(self.brain_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanbrain1.insert(0, '1Mizogg')
+        self._txt_inputvanbrain1.place(x=200,y=500)
+        self._txt_inputvanbrain1.focus()
+        self._txt_inputvanbrain2 = tkinter.Entry(self.brain_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanbrain2.insert(0, '3Merry')
+        self._txt_inputvanbrain2.place(x=300,y=500)
+        self._txt_inputvanbrain2.focus()
+        self._txt_inputvanbrain3 = tkinter.Entry(self.brain_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanbrain3.insert(0, '0x1Happy')
+        self._txt_inputvanbrain3.place(x=400,y=500)
+        self._txt_inputvanbrain3.focus()
+        self._txt_inputvanbrain4 = tkinter.Entry(self.brain_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanbrain4.insert(0, 'bc1xmas')
+        self._txt_inputvanbrain4.place(x=500,y=500)
+        self._txt_inputvanbrain4.focus()
+        self.labelvanbrain = tkinter.Label(self.brain_frame, text=" Optional Look for addresses starting with this prefix ", font=("Arial",7), fg="red").place(x=195,y=482)
         ########### crypto_frame ###########
         self.bwg = tkinter.Label(self.crypto_frame, text="Crypto Wallet Generator ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=60,y=75)
         self.bfr = tkinter.Label(self.crypto_frame, bg="#F0F0F0",font=("Arial",10),text="")
@@ -1448,6 +1697,28 @@ class MainWindow():
         self.sb1 = tkinter.Button(self.crypto_frame, text=" Backward Stop-Start ",font=("Arial",8),bg="#C3C4D7",command=self.Sequential_Bruteforce_speed_back).place(x=240,y=160)
         self.start= tkinter.Button(self.crypto_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= self.start, fg='green').place(x=460,y=160)
         self.stop= tkinter.Button(self.crypto_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= self.stop, fg='red').place(x=420,y=160)
+        self.labelvancrypto = tkinter.Label(self.crypto_frame, text=" Vanity Address \n Starting With ", font=("Arial",9), fg="red").place(x=5,y=490)
+        self._txt_inputvancrypto = tkinter.Entry(self.crypto_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvancrypto.insert(0, '1FeexV6bAH')
+        self._txt_inputvancrypto.place(x=100,y=500)
+        self._txt_inputvancrypto.focus()
+        self._txt_inputvancrypto1 = tkinter.Entry(self.crypto_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvancrypto1.insert(0, '1Mizogg')
+        self._txt_inputvancrypto1.place(x=200,y=500)
+        self._txt_inputvancrypto1.focus()
+        self._txt_inputvancrypto2 = tkinter.Entry(self.crypto_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvancrypto2.insert(0, '3Merry')
+        self._txt_inputvancrypto2.place(x=300,y=500)
+        self._txt_inputvancrypto2.focus()
+        self._txt_inputvancrypto3 = tkinter.Entry(self.crypto_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvancrypto3.insert(0, '0x1Happy')
+        self._txt_inputvancrypto3.place(x=400,y=500)
+        self._txt_inputvancrypto3.focus()
+        self._txt_inputvancrypto4 = tkinter.Entry(self.crypto_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvancrypto4.insert(0, 'bc1xmas')
+        self._txt_inputvancrypto4.place(x=500,y=500)
+        self._txt_inputvancrypto4.focus()
+        self.labelvancrypto = tkinter.Label(self.crypto_frame, text=" Optional Look for addresses starting with this prefix ", font=("Arial",7), fg="red").place(x=195,y=482)
         ########### page_frame ###########
         self.bwgpage = tkinter.Label(self.page_frame, text="Crypto Wallet Generator Based on Keys.lol 128 Private Keys per page",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
         self.page_brute = tkinter.Label(self.page_frame, bg="#F0F0F0",font=("Arial",10),text="")
@@ -1472,6 +1743,28 @@ class MainWindow():
         self.sb1page = tkinter.Button(self.page_frame, text=" Backward Stop-Start ",font=("Arial",8),bg="#C3C4D7",command=self.Sequential_Bruteforce_speed_back_page).place(x=240,y=160)
         self.startpage= tkinter.Button(self.page_frame, text= "Start",font=("Arial",8),bg="#F0F0F0", command= start1, fg='green').place(x=460,y=160)
         self.stoppage= tkinter.Button(self.page_frame, text= "Stop",font=("Arial",8),bg="#F0F0F0", command= stop1, fg='red').place(x=420,y=160)
+        self.labelvanpage = tkinter.Label(self.page_frame, text=" Vanity Address \n Starting With ", font=("Arial",9), fg="red").place(x=5,y=490)
+        self._txt_inputvanpage = tkinter.Entry(self.page_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanpage.insert(0, '1FeexV6bAH')
+        self._txt_inputvanpage.place(x=100,y=500)
+        self._txt_inputvanpage.focus()
+        self._txt_inputvanpage1 = tkinter.Entry(self.page_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanpage1.insert(0, '1Mizogg')
+        self._txt_inputvanpage1.place(x=200,y=500)
+        self._txt_inputvanpage1.focus()
+        self._txt_inputvanpage2 = tkinter.Entry(self.page_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanpage2.insert(0, '3Merry')
+        self._txt_inputvanpage2.place(x=300,y=500)
+        self._txt_inputvanpage2.focus()
+        self._txt_inputvanpage3 = tkinter.Entry(self.page_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanpage3.insert(0, '0x1Happy')
+        self._txt_inputvanpage3.place(x=400,y=500)
+        self._txt_inputvanpage3.focus()
+        self._txt_inputvanpage4 = tkinter.Entry(self.page_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanpage4.insert(0, 'bc1xmas')
+        self._txt_inputvanpage4.place(x=500,y=500)
+        self._txt_inputvanpage4.focus()
+        self.labelvanpage = tkinter.Label(self.page_frame, text=" Optional Look for addresses starting with this prefix ", font=("Arial",7), fg="red").place(x=195,y=482)
         ########### word_frame ###########
         self.word_update = tkinter.Label(self.word_frame, bg="#F0F0F0",font=("Arial",9),text="", width=72,fg="Red")
         self.word_update.place(x=10,y=190)
@@ -1490,6 +1783,28 @@ class MainWindow():
         self.my_buttonword = tkinter.Button(self.word_frame, text= "18 Words ",font=("Arial",8),bg="#F3E4A8", command= self.Random_word_offline6).place(x=350,y=120)
         self.my_buttonword = tkinter.Button(self.word_frame, text= "21 Words ",font=("Arial",8),bg="#F3E4B8", command= self.Random_word_offline7).place(x=412,y=120)
         self.my_buttonword = tkinter.Button(self.word_frame, text= "24 Words ",font=("Arial",8),bg="#F3E4C8", command= self.Random_word_offline8).place(x=474,y=120)
+        self.labelvanword = tkinter.Label(self.word_frame, text=" Vanity Address \n Starting With ", font=("Arial",9), fg="red").place(x=5,y=490)
+        self._txt_inputvanword = tkinter.Entry(self.word_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanword.insert(0, '1FeexV6bAH')
+        self._txt_inputvanword.place(x=100,y=500)
+        self._txt_inputvanword.focus()
+        self._txt_inputvanword1 = tkinter.Entry(self.word_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanword1.insert(0, '1Mizogg')
+        self._txt_inputvanword1.place(x=200,y=500)
+        self._txt_inputvanword1.focus()
+        self._txt_inputvanword2 = tkinter.Entry(self.word_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanword2.insert(0, '3Merry')
+        self._txt_inputvanword2.place(x=300,y=500)
+        self._txt_inputvanword2.focus()
+        self._txt_inputvanword3 = tkinter.Entry(self.word_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanword3.insert(0, '0x1Happy')
+        self._txt_inputvanword3.place(x=400,y=500)
+        self._txt_inputvanword3.focus()
+        self._txt_inputvanword4 = tkinter.Entry(self.word_frame, width=11, font=("Consolas", 11),fg="blue")
+        self._txt_inputvanword4.insert(0, 'bc1xmas')
+        self._txt_inputvanword4.place(x=500,y=500)
+        self._txt_inputvanword4.focus()
+        self.labelvanword = tkinter.Label(self.word_frame, text=" Optional Look for addresses starting with this prefix ", font=("Arial",7), fg="red").place(x=195,y=482)
         ########### hex_frame ###########
         self.hext = tkinter.Label(self.hex_frame, text="Rotation5 Bitcoin&Eth 20 Scans 128 private keys per scan 12,800 Addresses  ",font=("Arial",11),bg="#F0F0F0",fg="Black").place(x=10,y=75)
         self.hexl1 = tkinter.Label(self.hex_frame, text="Private Keys 1 - 10  ",font=("Arial",10),bg="#F0F0F0",fg="purple").place(x=60,y=270)
@@ -2001,7 +2316,7 @@ class MainWindow():
         self.widgetpop['text'] = "© MIZOGG 2018 - 2022"
         self.widgetpop['image'] = self.widgetpop.miz_image_png
         self.widgetpop.place(x=140,y=220)
-        self.label = tkinter.Label(self.pop, text='Welcome to MiniHunter Multi Crypto...... \n\n Made By Mizogg.co.uk \n\n Version 1.1 17/12/22').pack(pady=10)
+        self.label = tkinter.Label(self.pop, text='Welcome to MiniHunter Multi Crypto...... \n\n Made By Mizogg.co.uk \n\n Version 1.2 23/12/22').pack(pady=10)
         self.label1 = tkinter.Label(self.pop, text= "MiniHunter application use at your own risk.\n There is no promise of warranty.\n\n  Auto Agree 5 secs", font=('Helvetica 8 bold')).pack(pady=10)
         self.framepop = Frame(self.pop)
         self.framepop.pack(pady=10)
